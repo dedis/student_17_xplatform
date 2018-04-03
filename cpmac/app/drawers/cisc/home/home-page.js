@@ -193,7 +193,6 @@ function askForDevice() {
         .then((result) => {
             if (result) {
                 addDevice();
-
             }
         })
         .catch((error) => console.log(error));
@@ -201,12 +200,14 @@ function askForDevice() {
 
 function addDevice() {
     let data = Helper.deepCopy(Cisc.getData());
+    data.device = {};
+
     data.device[Cisc.getName()] = CothorityMessages.createDevice(User.getKeyPairModule().public);
     data.votes = {};
     console.dir(data);
 
     let proposeSendMessage = CothorityMessages.createProposeSend(Convert.hexToByteArray(Cisc.getIdentity().id), data);
-    console.log(Cisc.getIdentity().id);
+    console.log("SC ID: " + Cisc.getIdentity().id);
     const cothoritySocket = new NetDedis.Socket(Convert.tlsToWebsocket(Cisc.getIdentity().address, ""), RequestPath.IDENTITY);
     cothoritySocket.send(RequestPath.IDENTITY_PROPOSE_SEND, DecodeType.DATA_UPDATE_REPLY, proposeSendMessage)
         .then((response) => {

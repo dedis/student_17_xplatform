@@ -1,0 +1,34 @@
+<Page
+        class="page"
+        loaded="onLoaded"
+        xmlns:nsListView="nativescript-pro-ui/listview">
+
+    <ActionBar class="action-bar">
+        <Label class="action-bar-title" text="Organizer"/>
+    </ActionBar>
+
+    <!--<StackLayout class="page-content" orientation="vertical">
+        <Label class="label-title" text="Certificate"/>
+        <Button text="Cert-request" tap="addKeyValue"/>
+    </StackLayout>-->
+
+    <GridLayout class="page-content" columns="*" rows="10*,*" width="auto" height="auto" backgroundColor="white">
+        <Button text="Add certificate" row="1" col="0" tap="certTapped"/>
+        <!--<ScrollView orientation="vertical" colSpan="2" col="0" row="0">-->
+        <StackLayout id="stackCert" orientation="vertical" row="0" col="0" colSpan="2">
+
+
+            <Label id="storageLabel" class="label-title" text="Actual Skipchains and associated domains"/>
+            <ListView id="storage" items="{{ skipchains }}" orientation="vertical">
+                <ListView.itemTemplate>
+                    <StackLayout>
+                        <Label class="list-view-label" text="{{ skipchain.labelID }}" textWrap="true"/>
+                        <Label class="list-view-label" text="{{ skipchain.domain }}" textWrap="true"/>
+                    </StackLayout>
+                </ListView.itemTemplate>
+            </ListView>
+
+        </StackLayout>
+        <!--</ScrollView>-->
+    </GridLayout>
+</Page>

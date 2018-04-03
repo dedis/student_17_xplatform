@@ -46,6 +46,7 @@ class Cisc {
             proposedDevices: new ObservableArray(),
             storage: new ObservableArray(),
             proposedStorage: new ObservableArray(),
+            skipchains: new ObservableArray(),
             isConnected: false,
             name: "",
             isOnProposed: false
@@ -144,6 +145,28 @@ class Cisc {
      */
     getIdentity() {
         return this._identity;
+    }
+
+    getSkipchain() {
+        return this.getVMModule().skipchains;
+    }
+
+    /**
+     * Sets the new device list array given as parameter.
+     * @param {Skichain} skipchain - Skipchain TODO
+     * @returns {Promise} - a promise that gets resolved once the new device list array has been set
+     */
+    setSkipchain(){
+        this.emptySkipchainsArray();
+        for(var i=0;i<30;i++){
+            this.getVMModule().skipchains.push({
+                skipchain: {
+                    address: "tls://test:7004",
+                    domain: "https://test.cothority.net",
+                    labelID: "Skipchain " + i + " ID: " + i + i
+                }   
+            });
+        }          
     }
 
     /**
@@ -421,6 +444,15 @@ class Cisc {
     /**
      * Action functions.
      */
+
+    /**
+     * Empties the skipchain list array.
+     */
+    emptySkipchainsArray() {
+        while (this.getSkipchain().length > 0) {
+            this.getSkipchain().pop();
+        }
+    }
 
     /**
      * Empties the device list array.

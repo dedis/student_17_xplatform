@@ -425,7 +425,7 @@ class CothorityMessages extends CothorityProtobuf {
    */
   createDevice(key) {
     const model = this.getModel("Device");
-
+    
     const fields = {
       point: key
     };
