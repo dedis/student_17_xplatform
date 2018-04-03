@@ -1,23 +1,17 @@
 <Page
         class="page"
         loaded="onLoaded"
-        xmlns:nsListView="nativescript-pro-ui/listview">
+        xmlns:nsListView="nativescript-pro-ui/listview"
+        xmlns:FAB="nativescript-floatingactionbutton">
 
     <ActionBar class="action-bar">
         <Label class="action-bar-title" text="Organizer"/>
     </ActionBar>
 
-    <!--<StackLayout class="page-content" orientation="vertical">
-        <Label class="label-title" text="Certificate"/>
-        <Button text="Cert-request" tap="addKeyValue"/>
-    </StackLayout>-->
+    <GridLayout class="page-content" width="auto" height="auto" backgroundColor="white">
+        <FAB:fab icon="res://ic_add_white" tap="certTapped" rippleColor="#f1f1f1" class="fab-button"/>
 
-    <GridLayout class="page-content" columns="*" rows="10*,*" width="auto" height="auto" backgroundColor="white">
-        <Button text="Add certificate" row="1" col="0" tap="certTapped"/>
-        <!--<ScrollView orientation="vertical" colSpan="2" col="0" row="0">-->
-        <StackLayout id="stackCert" orientation="vertical" row="0" col="0" colSpan="2">
-
-
+        <StackLayout id="stackCert" orientation="vertical">
             <Label id="storageLabel" class="label-title" text="Actual Skipchains and associated domains"/>
             <ListView id="storage" items="{{ skipchains }}" orientation="vertical">
                 <ListView.itemTemplate>
@@ -27,8 +21,6 @@
                     </StackLayout>
                 </ListView.itemTemplate>
             </ListView>
-
         </StackLayout>
-        <!--</ScrollView>-->
     </GridLayout>
 </Page>

@@ -12,7 +12,6 @@ const LabelModule = require("tns-core-modules/ui/label");
 
 let viewmodel;
 let Page;
-//let lay;
 
 /* ***********************************************************
  * Use the "onNavigatingTo" handler to initialize the page binding context.
@@ -32,26 +31,6 @@ function onLoaded(args) {
     page.bindingContext = Cisc.getVMModule();
     viewmodel = page.bindingContext;
     Cisc.setSkipchain();
-    //lay = page.getViewById("stackCert");
-    //var domain=[4,5,30];
-    //addSkipchainDomains(3,domain);
-}
-
-function addSkipchainDomains(scSize, domainSize){
-    for(i = 0; i < scSize; i++){
-        var text = "Skipchain"+(i+1);
-        addLabel(text,lay);
-        for(j=0;j < domainSize[i];j++){
-            var text = "          Domain"+(j+1);
-            addLabel(text, lay);
-        }
-    }
-}
-
-function addLabel(text, layout){
-    const label = new LabelModule.Label();
-    label.text= text;
-    layout.addChild(label);
 }
 
 function certTapped(args){
