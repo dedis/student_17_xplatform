@@ -12,6 +12,7 @@ const LabelModule = require("tns-core-modules/ui/label");
 
 let viewmodel;
 let Page;
+let page;
 
 /* ***********************************************************
  * Use the "onNavigatingTo" handler to initialize the page binding context.
@@ -26,7 +27,7 @@ function onLoaded(args) {
         return;
     }
     
-    const page = args.object;
+    /*const*/ page = args.object;
     Page = page.page;
     page.bindingContext = Cisc.getVMModule();
     viewmodel = page.bindingContext;
@@ -34,8 +35,22 @@ function onLoaded(args) {
 }
 
 function certTapped(args){
-    console.log("Hello");
-    console.log(Cisc.getData());
+    var sc = Cisc.getSkipchains();
+    scActions = []
+    
+    for(var i = 0; i < sc.length; i++) {
+        scActions.push(sc[i].labelID); 
+    }
+
+    Dialog.action({
+        message: "Choose Skipchain identity",
+        cancelButtonText: "Cancel",
+        actions: scActions
+    })
+
+    .then(function (result) {
+        console.log("Dialog result: " + result);
+    });
 }
 
 

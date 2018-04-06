@@ -13,10 +13,10 @@
 
         <StackLayout id="stackCert" orientation="vertical">
             <Label id="storageLabel" class="label-title" text="Actual Skipchains and associated domains"/>
-            <ListView id="storage" items="{{ skipchains }}" orientation="vertical">
+            <ListView id="SkipchainsLabel" items="{{ skipchains }}" orientation="vertical">
                 <ListView.itemTemplate>
                     <StackLayout>
-                        <Label class="list-view-label" text="{{ skipchain.labelID }}" textWrap="true"/>
+                        <Label id="labID" class="list-view-label" text="{{ skipchain.labelID }}" textWrap="true"/>
                         <Label class="list-view-label" text="{{ skipchain.domain }}" textWrap="true"/>
                     </StackLayout>
                 </ListView.itemTemplate>

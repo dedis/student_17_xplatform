@@ -41,6 +41,7 @@ class Cisc {
             "id": "",
             "label": ""
         };
+        this._skipchains = new Array();
         this._viewModel = ObservableModule.fromObject({
             devices: new ObservableArray(),
             proposedDevices: new ObservableArray(),
@@ -147,8 +148,12 @@ class Cisc {
         return this._identity;
     }
 
-    getSkipchain() {
+    getSkipchainsVM() {
         return this.getVMModule().skipchains;
+    }
+
+    getSkipchains(){
+        return this._skipchains;
     }
 
     /**
@@ -157,6 +162,7 @@ class Cisc {
      * @returns {Promise} - a promise that gets resolved once the new device list array has been set
      */
     setSkipchain(){
+        this.emptySkipchainsVMArray();
         this.emptySkipchainsArray();
         for(var i=0;i<30;i++){
             this.getVMModule().skipchains.push({
@@ -166,6 +172,9 @@ class Cisc {
                     labelID: "Skipchain " + i + " ID: " + i + i
                 }   
             });
+            this._skipchains.push({
+                labelID: "Skipchain " + i + " ID: " + i + i
+            })
         }          
     }
 
@@ -449,8 +458,17 @@ class Cisc {
      * Empties the skipchain list array.
      */
     emptySkipchainsArray() {
-        while (this.getSkipchain().length > 0) {
-            this.getSkipchain().pop();
+        while (this.getSkipchains().length > 0) {
+            this.getSkipchains().pop();
+        }
+    }
+
+    /**
+     * Empties the skipchain list array.
+     */
+    emptySkipchainsVMArray() {
+        while (this.getSkipchainsVM().length > 0) {
+            this.getSkipchainsVM().pop();
         }
     }
 
