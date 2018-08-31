@@ -13,8 +13,12 @@ const PoP = require("../../../shared/lib/dedjs/object/pop/PoP").get;
 var platform = require("tns-core-modules/platform");
 var Directory = require("../../../shared/lib/Directory/Directory");
 const POP_TOKEN_OPTION_SIGN = "Sign";
+const POP_TOKEN_OPTION_TRANSFER_COINS = "Transfer coins";
 const POP_TOKEN_OPTION_REVOKE = "Revoke";
 const repeaterModule = require("tns-core-modules/ui/repeater");
+const Buffer = require("buffer").Buffer;
+
+const USER_CANCELED = "USER_CANCELED_STRING";
 
 const viewModel = ObservableModule.fromObject({
     partyListDescriptions: new ObservableArray(),
@@ -65,7 +69,6 @@ function loadParties() {
 
     FileIO.forEachFolderElement(FilePaths.POP_ATT_PATH, function (partyFolder) {
         AttParty.loadFromDisk(partyFolder.name).then((party) => {
-            console.log("SKDEBUG FOUND party : " + partyFolder.name);
             // Observables have to be nested to reflect changes
             viewModel.partyListDescriptions.push(ObservableModule.fromObject({
                 party: party,
@@ -81,10 +84,12 @@ function loadParties() {
 
 function partyTapped(args) {
 
+
     const index = args.index;
     const status = viewModel.partyListDescriptions.getItem(index).status.status;
     const party = viewModel.partyListDescriptions.getItem(index).party;
     console.log(party)
+
 
     switch (status) {
         case PartyStates.ERROR:
@@ -101,7 +106,7 @@ function partyTapped(args) {
                 .action({
                     message: "What do you want to do ?",
                     cancelButtonText: "Cancel",
-                    actions: ["Generate a new key pair", "Show the QR Code of my public key", "Display Party Info","Delete Party"]
+                    actions: ["Generate a new key pair", "Show the QR Code of my public key", "Display Party Info", "Delete Party"]
                 })
                 .then(result => {
                     if (result === "Generate a new key pair") {
@@ -114,7 +119,7 @@ function partyTapped(args) {
                         })
                             .then(accepted => {
                                 return !accepted ? Promise.resolve() : (party.randomizeKeyPair().then(Frame.topmost().navigate({
-                                  animated: false,  clearHistory: true, moduleName:"drawers/home/home-page"
+                                    animated: false, clearHistory: true, moduleName: "drawers/home/home-page"
                                 })))
                                     .then(() => {
                                         return Dialog.alert({
@@ -139,9 +144,9 @@ function partyTapped(args) {
                                 readOnly: true
                             }
                         });
-                    }else if (result === "Delete Party"){
+                    } else if (result === "Delete Party") {
                         deleteParty(party);
-                        viewModel.partyListDescriptions.splice(index,1)
+                        viewModel.partyListDescriptions.splice(index, 1)
 
                     }
                 })
@@ -161,18 +166,30 @@ function partyTapped(args) {
         case PartyStates.POPTOKEN:
 
             if (!party.isAttendee(party.getKeyPair().public)) {
+
                 return Promise.reject("You are not part of the attendees.");
 
             }
-            if(party.getPopToken() === undefined) {
+            if (party.getPopToken() === undefined) {
                 PoP.addPopTokenFromFinalStatement(party.getFinalStatement(), party.getKeyPair(), true, party)
-                    .then(Frame.topmost().getViewById("listView").refresh());
+                    .then(() => {
+                        return Frame.topmost().getViewById("listView").refresh()
+                    })
+                    .catch(error => {
+                        Dialog.alert({
+                            title: "Error",
+                            message: "An error occured, please retry. - " + error,
+                            okButtonText: "Ok"
+                        });
+                        console.log(error.stack);
+                    });
             }
+
 
             return Dialog.action({
                 message: "Choose an Action",
                 cancelButtonText: "Cancel",
-                actions: [ POP_TOKEN_OPTION_SIGN]
+                actions: [POP_TOKEN_OPTION_SIGN, POP_TOKEN_OPTION_TRANSFER_COINS]
             })
                 .then(result => {
                     if (result === POP_TOKEN_OPTION_REVOKE) {
@@ -215,6 +232,50 @@ function partyTapped(args) {
                                 }
 
                             })
+                    } else if (result === POP_TOKEN_OPTION_TRANSFER_COINS) {
+                        let amount = undefined;
+                        const USER_WRONG_INPUT = "USER_WRONG_INPUT";
+
+                        return Dialog.prompt({
+                            title: "Amount",
+                            message: "Please choose the amount of PoP-Coin you want to transfer",
+                            okButtonText: "Transfer",
+                            cancelButtonText: "Cancel",
+                            defaultText: "",
+                        }).then((r) => {
+                            if (!r.result) {
+                                return Promise.reject(USER_CANCELED)
+                            }
+                            amount = Number(r.text);
+                            if (isNaN(amount) || !(Number.isInteger(amount))) {
+                                return Promise.reject(USER_WRONG_INPUT)
+                            }
+                            return ScanToReturn.scan()
+                        }).then(publicKeyJson => {
+                            const publicKeyObject = Convert.jsonToObject(publicKeyJson);
+                            return party.transferCoin(amount, Convert.base64ToByteArray(publicKeyObject.public));
+                        }).then(() => {
+                            return Dialog.alert({
+                                title: "Success !",
+                                message: "" + amount + " PoP-Coins have been transferred",
+                                okButtonText: "Ok"
+                            });
+                        }).catch(err => {
+                            if (err === USER_CANCELED) {
+                                return Promise.resolve()
+                            } else if (err === USER_WRONG_INPUT) {
+                                return Dialog.alert({
+                                    title: "Wrong input",
+                                    message: "You can only enter an integer number. Please try again.",
+                                    okButtonText: "Ok"
+                                });
+
+                            }
+
+                            console.log(err.stack);
+
+                            return Promise.reject(err)
+                        })
                     }
 
                     return Promise.resolve();
@@ -280,7 +341,7 @@ function onSwipeCellStarted(args) {
 }
 
 module.exports.addMyself = function (infos) {
-    const newParty = new AttParty(infos.id, infos.address);
+    const newParty = new AttParty(infos.id, infos.omniledgerId, infos.address);
     return newParty.save().then(() => {
         viewModel.partyListDescriptions.push(ObservableModule.fromObject({
             party: newParty,
@@ -296,7 +357,7 @@ function addParty() {
     return ScanToReturn.scan()
         .then(string => {
             const infos = Convert.jsonToObject(string);
-            const newParty = new AttParty(infos.id, infos.address);
+            const newParty = new AttParty(infos.id, infos.omniledgerId, infos.address);
 
 
             return newParty.save().then((st) => {
@@ -308,8 +369,9 @@ function addParty() {
 
                 update();
                 return newParty.update()
-                    .then(Frame.topmost().navigate({animated: false, clearHistory: true, moduleName:"drawers/home/home-page"
-                }));
+                    .then(Frame.topmost().navigate({
+                        animated: false, clearHistory: true, moduleName: "drawers/home/home-page"
+                    }));
             });
         })
         .catch(error => {
@@ -334,7 +396,7 @@ function addParty() {
 function update() {
     pageObject.getViewById("listView").refresh();
 
-    if(page.frame !== undefined) {
+    if (page.frame !== undefined) {
         Frame.topmost().getViewById("listView").refresh();
     }
 }
@@ -342,7 +404,7 @@ function update() {
 function reloadStatuses() {
 
 
-    if(page.frame !== undefined) {
+    if (page.frame !== undefined) {
         Frame.topmost().getViewById("repeater").refresh();
     }
     viewModel.partyListDescriptions.forEach(model => {
